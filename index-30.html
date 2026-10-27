@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SAREXBD Dropship</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.js"></script>
+<style>
+    :root {
+      --gold: #d4af37;
+      --gold2: #f3d77a;
+      --bg: #0a0a0a;
+      --bg2: #0d0d0d;
+      --card: #111113;
+      --panel: #121212;
+      --line: #2b2414;
+      --field: #080808;
+      --field-line: #3a321d;
+      --blue: #5aa9ff;
+      --text: #f5f5f5;
+      --muted: #a8a8a8;
+      --red: #e53935;
+      --hero-img: url("logo.png");
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; scroll-padding-top: 120px; }
+    body { font-family: "Hind Siliguri", Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+    a { color: inherit; }
+    img { max-width: 100%; }
+    [hidden] { display: none !important; }
+
+    /* ---------- Top bar & header ---------- */
+    .topbar { background: #000; color: #fff; text-align: center; font-size: 14px; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+    .topbar b { color: var(--gold); }
+    .site-header { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; gap: 18px; padding: 12px 4%; background: rgba(10, 10, 10, 0.97); border-bottom: 1px solid var(--line); }
+    .logo { height: 66px; width: auto; display: block; mix-blend-mode: lighten; }
+    .search { flex: 1; max-width: 520px; margin-left: auto; display: flex; border: 1px solid #2a2a2a; border-radius: 10px; overflow: hidden; background: #0d0d0d; }
+    .search input { flex: 1; min-width: 0; background: transparent; border: 0; color: #fff; padding: 11px 14px; font: inherit; outline: none; }
+    .search input::placeholder { color: #888; }
+    .search button { width: 48px; border: 0; background: var(--gold); font-size: 17px; cursor: pointer; }
+    .cart-link { color: var(--gold); text-decoration: none; font-size: 24px; padding: 4px 6px; }
+    .site-nav { display: flex; justify-content: center; flex-wrap: wrap; gap: 34px; padding: 12px 4%; background: #0a0a0a; border-bottom: 1px solid var(--gold); }
+    .site-nav a { color: #ddd; text-decoration: none; font-size: 15px; padding: 6px 2px; border-bottom: 2px solid transparent; }
+    .site-nav a:hover { color: var(--gold); border-color: var(--gold); }
+
+    /* ---------- Hero ---------- */
+    .hero { position: relative; overflow: hidden; min-height: 80vh; display: flex; align-items: center; padding: 80px 6%; border-bottom: 1px solid var(--line);
+      background: radial-gradient(circle at 80% 40%, rgba(212, 175, 55, 0.25) 0%, rgba(20, 16, 10, 0.9) 30%, #0a0a0a 68%); }
+    .hero::after { content: ""; position: absolute; right: 4%; top: 50%; transform: translateY(-50%); width: 42%; max-width: 420px; aspect-ratio: 1; background: var(--hero-img) center / contain no-repeat; opacity: 0.12; pointer-events: none; }
+    .hero-content { position: relative; z-index: 1; max-width: 640px; }
+    .eyebrow { color: var(--gold); letter-spacing: 4px; font-size: 14px; font-weight: 700; margin-bottom: 14px; }
+    .hero h1 { font-family: "Cormorant Garamond", Georgia, serif; font-size: clamp(44px, 7vw, 82px); font-weight: 700; line-height: 1.02; text-transform: uppercase; margin-bottom: 14px; }
+    .hero h1 .gold { display: block; color: var(--gold); }
+    .hero .sub { font-size: 20px; color: #f1e3b5; margin-bottom: 26px; }
+
+    /* ---------- Buttons ---------- */
+    .btn { display: inline-block; border: 0; border-radius: 8px; background: linear-gradient(180deg, var(--gold2), #c99a2e); color: #111; padding: 14px 26px; font: inherit; font-size: 16px; font-weight: 700; text-decoration: none; text-align: center; cursor: pointer; transition: filter 0.2s; }
+    .btn:hover { filter: brightness(1.07); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn.small { padding: 9px 16px; font-size: 14px; }
+
+    /* ---------- Sections ---------- */
+    .block { padding: 64px 6%; }
+    .block.alt { background: var(--bg2); }
+    .title { text-align: center; margin-bottom: 36px; }
+    .title h2 { font-family: "Cormorant Garamond", Georgia, serif; font-size: clamp(30px, 4vw, 40px); font-weight: 700; }
+    .title p { color: var(--muted); margin-top: 4px; }
+
+    /* ---------- Categories ---------- */
+    .cats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; max-width: 1200px; margin: 0 auto; }
+    .cat { display: block; text-decoration: none; text-align: center; padding: 24px 8px; border: 1px solid var(--gold); border-radius: 12px; background: #0c0c0c; transition: background 0.2s; }
+    .cat:hover { background: #17130a; }
+    .cat .ic { display: block; font-size: 30px; margin-bottom: 8px; }
+    .cat b { display: block; font-size: 15px; font-weight: 600; }
+    .cat small { color: var(--muted); font-size: 12px; }
+
+    /* ---------- Products (app.js-এর স্টাইল এই নিয়মগুলো ছাড়িয়ে যায়) ---------- */
+    body #products.grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+    body #products .product-card { position: relative; display: flex; flex-direction: column; background: var(--card); border: 1px solid #1d3450; border-radius: 14px; padding: 14px; cursor: pointer; transition: transform 0.25s, border-color 0.25s; }
+    body #products .product-card:hover { transform: translateY(-4px); border-color: var(--gold); }
+    body #products .product-image { aspect-ratio: 4 / 3; border-radius: 10px; background: #1a120a; margin-bottom: 12px; overflow: hidden; }
+    body #products .product-card h3 { color: var(--blue); font-size: 16px; font-weight: 600; line-height: 1.35; margin: 2px 0 6px; }
+    body #products .product-card h3 + p { color: var(--gold); font-size: 20px; font-weight: 700; margin: 0 0 6px; }
+    body #products .product-card h3 + p ~ p { color: var(--muted); font-size: 13px; font-weight: 400; margin: 0 0 12px; }
+    body #products .product-card .btn { margin-top: auto; width: 100%; }
+    body #products .discount-badge { position: absolute; top: 46px; left: 12px; z-index: 2; background: var(--red); color: #fff; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 6px; }
+    @media (max-width: 900px) {
+      body #products.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    }
+
+    .cbadge { position: absolute; top: -6px; right: -8px; background: var(--gold); color: #111; font-size: 11px; font-weight: 700; border-radius: 99px; padding: 1px 6px; min-width: 18px; text-align: center; }
+    .cart-link { position: relative; }
+    .cart-total { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--field-line); font-size: 15px; color: #ddd; }
+    .cart-total b { color: var(--gold); font-size: 18px; }
+
+    .prod-rating { color: #f3d77a; font-size: 13px; margin: -4px 0 10px; }
+    .pm-rev { margin-top: 16px; border-top: 1px solid var(--field-line); padding-top: 14px; }
+    .pm-rev-item { background: #161616; border: 1px solid var(--field-line); border-radius: 10px; padding: 12px; margin: 8px 0; }
+
+    #reviewsList { display: none; }
+    #generalReviews { max-width: 900px; margin: 0 auto 26px; }
+    .gen-reviews .cr-item { margin-bottom: 10px; }
+    .prod-reviews { display: flex; flex-direction: column; gap: 8px; margin: 0 0 12px; }
+    .cr-item { background: #161616; border: 1px solid var(--field-line); border-radius: 10px; padding: 9px 10px; font-size: 13px; }
+    .cr-item b { color: var(--gold); }
+    .cr-item span { color: var(--gold); margin-left: 6px; letter-spacing: 1px; }
+    .cr-item p { color: #bbb; margin-top: 3px; }
+    .cr-more { background: none; border: 0; color: var(--gold); font: inherit; font-size: 13px; cursor: pointer; text-align: left; padding: 0; }
+
+    .pm-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 14px; }
+    .pm-specs div { background: #161616; border: 1px solid var(--field-line); border-radius: 8px; padding: 8px; }
+    .pm-specs span { display: block; color: var(--muted); font-size: 12px; }
+    .pm-specs b { color: #fff; font-size: 14px; font-weight: 600; }
+    .pm-gallery { display: flex; gap: 8px; margin-top: 12px; overflow-x: auto; }
+    .pm-gallery img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; cursor: pointer; flex: none; }
+
+    .lang-btn { border: 1px solid var(--gold); background: transparent; color: var(--gold); border-radius: 8px; padding: 6px 12px; font: inherit; font-weight: 700; cursor: pointer; }
+
+    .flash-bar { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px; padding: 12px 16px; background: linear-gradient(90deg, #3b2a06, #6b4d0c, #3b2a06); border-bottom: 1px solid var(--gold); text-align: center; }
+    .flash-bar b { color: var(--gold2); font-size: 18px; letter-spacing: 1px; }
+
+    .card-badge { position: absolute; top: 12px; left: 12px; z-index: 2; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 6px; background: var(--gold); color: #111; }
+    .card-badge[data-kind="Hot"] { background: #e53935; color: #fff; }
+    .card-badge[data-kind="New"] { background: #17794a; color: #fff; }
+    .card-badge[data-kind="Combo Offer"] { background: #1e4fb3; color: #fff; }
+    .card-badge[data-kind="Premium"] { background: #111; color: var(--gold); border: 1px solid var(--gold); }
+
+    .foot-feats { display: flex; justify-content: center; flex-wrap: wrap; gap: 18px; margin: 18px 0; }
+    .ff { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 110px; color: #ddd; font-size: 13px; text-align: center; }
+    .ff .fi { width: 58px; height: 58px; border-radius: 50%; border: 1px solid var(--gold); display: grid; place-items: center; font-size: 24px; background: #0c0c0c; }
+    .ff b { color: var(--gold2); font-weight: 600; }
+    .ff small { color: var(--muted); font-size: 11px; }
+
+    .ico-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--gold); display: grid; place-items: center; text-decoration: none; font-size: 18px; background: transparent; }
+    .ico-btn { overflow: hidden; }
+    .ico-btn svg { width: 22px; height: 22px; fill: #fff; }
+    .ico-btn.wa { background: #25D366; border-color: #25D366; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.35); }
+    .ico-btn.fb { background: #1877F2; border-color: #1877F2; box-shadow: 0 4px 12px rgba(24, 119, 242, 0.35); }
+    .ico-btn.wa:hover, .ico-btn.fb:hover { filter: brightness(1.08); background-color: inherit; }
+    .fsvg { width: 18px; height: 18px; margin-right: 6px; vertical-align: -3px; fill: currentColor; }
+    .fsvg.wa { fill: #25D366; }
+    .fsvg.fb { fill: #1877F2; }
+    .foot-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 12px 0; }
+    .fbtn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 99px; border: 1px solid var(--gold); color: var(--gold2); text-decoration: none; font-weight: 600; font-size: 14px; }
+    .fbtn:hover { background: #17130a; }
+
+    .brand-about { max-width: 760px; margin: 0 auto 24px; text-align: center; line-height: 1.8; color: #bbb; }
+    .brand-about h3 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 28px; color: var(--gold); margin-bottom: 10px; }
+    .brand-about p { margin: 8px 0; }
+    .brand-points { list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 16px; }
+    .brand-points li { border: 1px solid var(--field-line); border-radius: 99px; padding: 6px 14px; font-size: 13px; color: #ddd; background: #0f0f0f; }
+
+    button.cat { font: inherit; color: inherit; cursor: pointer; width: 100%; }
+
+    /* ---------- পণ্যের বিস্তারিত পেজ (popup) ---------- */
+    .dm-box { max-width: 980px; }
+    .dm-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 26px; align-items: start; }
+    .dm-main { aspect-ratio: 4 / 3; border-radius: 12px; background: #1a120a; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .dm-main img { width: 100%; height: 100%; object-fit: cover; }
+    .dm-thumbs { display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; }
+    .dm-thumbs img { width: 66px; height: 66px; object-fit: cover; border-radius: 8px; cursor: pointer; flex: none; border: 1px solid var(--field-line); }
+    .dm-cat { color: var(--muted); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
+    .dm-name { font-size: 24px; font-weight: 700; margin: 6px 0 10px; color: #fff; }
+    .dm-price { color: var(--gold); font-size: 28px; font-weight: 700; }
+    .dm-price s { color: var(--muted); font-size: 15px; font-weight: 400; margin: 0 8px; }
+    .dm-off { background: var(--red); color: #fff; font-size: 12px; padding: 3px 8px; border-radius: 6px; vertical-align: middle; }
+    .dm-stock { font-size: 14px; margin: 8px 0; }
+    .dm-stock.ok { color: #6ee0a0; }
+    .dm-stock.no { color: #ff8a80; }
+    .dm-btns { display: flex; gap: 10px; margin: 14px 0; flex-wrap: wrap; }
+    .dm-btns .btn { flex: 1; min-width: 150px; }
+    .dm-btns .btn.dark { background: #111; color: #fff; border: 1px solid var(--gold); }
+    .dm-hl { list-style: none; margin: 14px 0; color: #ddd; }
+    .dm-hl li { padding: 4px 0; }
+    .dm-hl li:before { content: "✔ "; color: var(--gold); }
+    .dm-meta { color: var(--muted); font-size: 13px; }
+    .dm-tabs { display: flex; gap: 8px; margin-top: 22px; border-bottom: 1px solid var(--field-line); flex-wrap: wrap; }
+    .dm-tabs button { background: none; border: 0; color: var(--muted); padding: 10px 14px; font: inherit; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; }
+    .dm-tabs button.on { color: var(--gold); border-color: var(--gold); }
+    .dm-pane { padding: 16px 0; color: #ccc; white-space: pre-line; line-height: 1.8; }
+    .dm-policy { margin-top: 22px; border: 1px dashed var(--gold); border-radius: 12px; padding: 14px; color: #ddd; white-space: pre-line; }
+    .dm-related { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+    .dm-rel { background: #151515; border: 1px solid #2a2a2a; border-radius: 10px; padding: 8px; color: #fff; text-align: left; cursor: pointer; font: inherit; }
+    .dm-rel img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; margin-bottom: 6px; }
+    .dm-rel b { display: block; font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .dm-rel span { color: var(--gold); font-size: 13px; }
+    @media (max-width: 800px) {
+      .dm-grid { grid-template-columns: 1fr; }
+      .dm-related { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    .dm-size { margin: 12px 0; }
+    .dm-size-title { font-weight: 600; margin-bottom: 6px; color: #fff; }
+    .dm-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .dm-chip { border: 1px solid var(--gold); background: transparent; color: var(--gold2); border-radius: 99px; padding: 7px 14px; font: inherit; cursor: pointer; }
+    .dm-chip.on { background: var(--gold); color: #111; font-weight: 700; }
+    .dm-chip:hover { background: #17130a; }
+    .dm-msg { color: #ff8a80; font-size: 14px; margin-top: 6px; min-height: 18px; }
+    .dm-chart { margin-top: 8px; background: #161616; border: 1px solid var(--field-line); border-radius: 10px; padding: 12px; font-size: 13px; color: #ddd; white-space: pre-line; line-height: 1.7; }
+
+    .dm-h { color: var(--gold); font-size: 17px; margin: 22px 0 8px; letter-spacing: 1px; }
+    .dm-main { cursor: zoom-in; border: 1px solid var(--field-line); }
+    .dm-stock { display: inline-block; font-size: 13px; font-weight: 700; padding: 5px 12px; border-radius: 99px; margin: 6px 0; }
+    .dm-stock.ok { background: #12301f; color: #6ee0a0; border: 1px solid #1f6a40; }
+    .dm-stock.no { background: #3a1717; color: #ffb4b4; border: 1px solid #6b2a2a; }
+    .dm-price { font-size: 30px; }
+    .lb { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.94); z-index: 700; display: flex; align-items: center; justify-content: center; padding: 16px; cursor: zoom-out; }
+    .lb img { max-width: 100%; max-height: 90vh; border-radius: 12px; border: 1px solid var(--gold); }
+    .lb-x { position: absolute; top: 14px; right: 14px; width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--gold); background: #111; color: var(--gold); font-size: 24px; cursor: pointer; }
+    .dm-deliv { display: inline-block; border: 1px solid var(--red); color: #ff8a80; border-radius: 8px; padding: 8px 12px; margin: 10px 0; font-size: 14px; }
+    .dm-btns { position: sticky; bottom: 0; background: #121212; padding: 10px 0; z-index: 2; }
+    .dm-pane { white-space: pre-line; }
+
+    .sw { display: inline-block; width: 14px; height: 14px; border-radius: 50%; margin-right: 6px; vertical-align: -2px; border: 1px solid #666; }
+    .dm-faq { border: 1px solid var(--field-line); border-radius: 10px; padding: 10px 14px; margin: 8px 0; background: #141414; }
+    .dm-faq summary { cursor: pointer; color: #fff; font-weight: 600; }
+    .dm-faq-a { margin-top: 8px; color: #ccc; white-space: pre-line; line-height: 1.7; }
+
+    .ty { position: fixed; inset: 0; background: #0a0a0a; z-index: 800; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+    .ty-card { max-width: 520px; width: 100%; }
+    .ty-check { width: 116px; height: 116px; border-radius: 50%; background: linear-gradient(180deg, #f3d77a, #c99a2e); margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3); }
+    .ty-title { font-family: "Cormorant Garamond", Georgia, serif; font-size: 34px; color: var(--gold2); margin-bottom: 14px; }
+    .ty-no { color: #ddd; margin-bottom: 10px; }
+    .ty-text { color: #bbb; font-size: 17px; line-height: 1.8; margin-bottom: 18px; }
+    .ty-sum { border: 1px solid var(--field-line); border-radius: 12px; padding: 12px; color: #ddd; margin-bottom: 22px; font-size: 15px; }
+    .ty-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .ty-btns .btn { min-width: 160px; }
+
+    /* ---------- নতুন প্রিমিয়াম চেহারা ---------- */
+    .hero { background: radial-gradient(ellipse at 75% 30%, rgba(212, 175, 55, 0.22), transparent 55%), linear-gradient(180deg, #0d0d0f 0%, #070708 100%); border-bottom: 1px solid rgba(212, 175, 55, 0.35); }
+    .hero .eyebrow { letter-spacing: 6px; }
+    .hero h1 { text-shadow: 0 6px 30px rgba(0, 0, 0, 0.6); }
+
+    .feat-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; background: #0b0b0c; border-bottom: 1px solid rgba(212, 175, 55, 0.25); }
+    .fs-item { display: flex; align-items: center; gap: 10px; padding: 16px 14px; border-right: 1px solid rgba(212, 175, 55, 0.18); }
+    .fs-item:last-child { border-right: 0; }
+    .fs-ic { width: 42px; height: 42px; flex: none; border-radius: 50%; border: 1px solid var(--gold); display: grid; place-items: center; font-size: 18px; background: #111; }
+    .fs-item b { display: block; color: #fff; font-size: 13px; font-weight: 600; line-height: 1.35; }
+    .fs-item small { display: block; color: var(--muted); font-size: 11px; }
+    @media (max-width: 760px) {
+      .feat-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .fs-item:nth-child(2) { border-right: 0; }
+      .fs-item:nth-child(-n+2) { border-bottom: 1px solid rgba(212, 175, 55, 0.18); }
+    }
+
+    body #products .product-card { background: linear-gradient(180deg, #131316 0%, #0c0c0e 100%); border-color: rgba(212, 175, 55, 0.22); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); }
+    body #products .product-card:hover { box-shadow: 0 14px 34px rgba(212, 175, 55, 0.18); }
+    body #products .product-card h3 + p { font-size: 22px; }
+
+    .site-header { border-bottom: 1px solid rgba(212, 175, 55, 0.35); }
+    footer { border-top: 1px solid rgba(212, 175, 55, 0.35); background: linear-gradient(180deg, #0a0a0b 0%, #050505 100%); }
+
+    .bnav { display: none; }
+    @media (max-width: 760px) {
+      body { padding-bottom: 72px; }
+      .bnav { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; background: #050505; border-top: 1px solid rgba(212, 175, 55, 0.4); justify-content: space-around; padding: 8px 4px calc(8px + env(safe-area-inset-bottom, 0px)); }
+      .bnav a { flex: 1; text-align: center; color: var(--gold2); text-decoration: none; font-size: 11px; }
+      .bnav a span { display: block; font-size: 18px; }
+      .bnav a b { color: #fff; }
+    }
+
+    .foot-info { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 14px 0 6px; }
+    .foot-info a { border: 1px solid var(--gold); color: var(--gold2); border-radius: 99px; padding: 8px 14px; font-size: 13px; text-decoration: none; cursor: pointer; }
+    .info-ov { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9); z-index: 750; display: none; align-items: center; justify-content: center; padding: 16px; }
+    .info-ov.open { display: flex; }
+    .info-box { background: #121214; border: 1px solid var(--gold); border-radius: 16px; max-width: 620px; width: 100%; max-height: 88vh; overflow: auto; padding: 24px; position: relative; color: #ddd; line-height: 1.85; }
+    .info-box h2 { font-family: Georgia, serif; color: var(--gold2); margin: 0 0 12px; font-size: 26px; }
+    .info-box p { margin: 8px 0; }
+    .info-x { position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--gold); background: #111; color: var(--gold); font-size: 24px; cursor: pointer; }
+    .info-box input { width: 100%; background: #0c0c0c; color: #fff; border: 1px solid var(--field-line); border-radius: 10px; padding: 12px; font: inherit; margin: 6px 0 10px; }
+    .info-box .res { margin-top: 12px; padding: 12px; border: 1px dashed var(--gold); border-radius: 10px; color: #eee; }
+
+    .ch-btn { border-color: #25D366 !important; color: #7ef0a8 !important; }
+    .ch-sec { text-align: center; padding: 26px 16px; background: #0b0b0c; border-bottom: 1px solid rgba(212, 175, 55, 0.25); }
+    .ch-sec h3 { font-family: Georgia, serif; color: var(--gold2); font-size: 24px; margin: 0 0 6px; }
+    .ch-sec p { color: var(--muted); margin: 0 0 14px; }
+    .ch-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .ch-big { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 210px; padding: 14px 22px; border-radius: 99px; font-weight: 700; text-decoration: none; }
+    .ch-big.wa { background: #25D366; color: #06210f; box-shadow: 0 6px 20px rgba(37, 211, 102, 0.35); }
+    .ch-big.tg { background: #229ED9; color: #fff; box-shadow: 0 6px 20px rgba(34, 158, 217, 0.35); }
+    .rv-photos { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+    .rv-photos img { width: 84px; height: 84px; object-fit: cover; border-radius: 8px; border: 1px solid var(--gold); }
+    .dm-cd { display: inline-block; background: #2a1a05; border: 1px solid var(--gold); color: var(--gold2); border-radius: 8px; padding: 8px 12px; margin: 8px 0; font-size: 14px; }
+    .so-card { position: relative; overflow: hidden; }
+    .so-card img { display: block; }
+    .so-card h3 { font-size: 15px; color: #bbb; margin: 10px 12px 4px; }
+    .so-price { color: #888; margin: 0 12px 14px; font-size: 16px; }
+    .so-ribbon { position: absolute; top: 14px; left: -36px; background: #b3261e; color: #fff; font-weight: 700; font-size: 12px; letter-spacing: 1px; padding: 5px 44px; transform: rotate(-35deg); z-index: 2; }
+    .cp-banner { text-align: center; padding: 12px 16px; background: linear-gradient(90deg, #2a1a05, #3d2a08, #2a1a05); border-bottom: 1px solid var(--gold); color: #f3d77a; font-size: 15px; }
+    .cp-banner b { color: #fff; letter-spacing: 1px; }
+    .dm-alert { margin-top: 12px; border: 1px dashed var(--gold); border-radius: 12px; padding: 12px; }
+    .dm-alert .row { display: flex; gap: 8px; margin-top: 8px; }
+    .dm-alert input { flex: 1; background: #0c0c0c; color: #fff; border: 1px solid var(--field-line); border-radius: 10px; padding: 10px; font: inherit; }
+    .pol-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+    .pol-btn { text-align: left; background: #0c0c0c; color: var(--gold2); border: 1px solid var(--gold); border-radius: 12px; padding: 14px 16px; font: inherit; font-size: 16px; cursor: pointer; }
+    .pol-btn:hover { background: #17130a; }
+    .pol-back { background: none; border: 0; color: var(--gold); font: inherit; font-size: 15px; cursor: pointer; padding: 0 0 8px; }
+    .hamb { width: 42px; height: 42px; flex: none; border-radius: 12px; border: 1px solid var(--gold); background: #111; color: var(--gold2); font-size: 20px; cursor: pointer; }
+    .menu-ov { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 780; display: none; }
+    .menu-ov.open { display: flex; }
+    .menu-box { position: absolute; top: 70px; left: 12px; width: min(92vw, 420px); background: #121214; border: 1px solid var(--gold); border-radius: 16px; padding: 14px; color: #ddd; box-shadow: 0 12px 30px rgba(0,0,0,.5); }
+    .menu-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; color: var(--gold2); font-size: 18px; font-weight: 700; }
+    .menu-x { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--gold); background: #111; color: var(--gold); font-size: 22px; cursor: pointer; }
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .menu-item { display: block; text-align: left; background: #0c0c0c; border: 1px solid var(--gold); color: var(--gold2); border-radius: 12px; padding: 14px; text-decoration: none; font: inherit; font-size: 15px; cursor: pointer; }
+    /* ---------- Wishlist ---------- */
+    .wish-btn { position: absolute; top: 12px; right: 12px; z-index: 3; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--gold); background: rgba(0, 0, 0, 0.6); color: #fff; font-size: 18px; cursor: pointer; }
+    .wish-btn.on { color: var(--red); border-color: var(--red); }
+    .wish-bar { display: flex; justify-content: center; margin-bottom: 18px; }
+    .wish-bar button { border: 1px solid var(--gold); background: transparent; color: var(--gold); border-radius: 99px; padding: 8px 18px; font: inherit; cursor: pointer; }
+    .wish-bar button.on { background: var(--gold); color: #111; font-weight: 700; }
+
+    /* ---------- Popups ---------- */
+    .modal { position: fixed; inset: 0; z-index: 500; background: rgba(0, 0, 0, 0.75); display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .modal-box { position: relative; width: 100%; max-width: 820px; max-height: 92vh; overflow-y: auto; background: var(--panel); border: 1px solid #3a2f15; border-radius: 16px; padding: 26px; }
+    .modal-box.small { max-width: 620px; }
+    .modal-close { position: absolute; top: 10px; right: 12px; width: 36px; height: 36px; border: 0; border-radius: 50%; background: #1d1d1d; color: var(--gold); font-size: 22px; cursor: pointer; }
+    .pm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+    .pm-img { aspect-ratio: 4 / 3; border-radius: 12px; background: #1a120a; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .pm-img img { width: 100%; height: 100%; object-fit: cover; }
+    .pm-name { color: var(--blue); font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .pm-price { color: var(--gold); font-size: 26px; font-weight: 700; }
+    .pm-price s { color: var(--muted); font-size: 15px; font-weight: 400; margin-left: 8px; }
+    .pm-desc { color: #bbb; margin: 12px 0; }
+    .pm-meta { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+    .qty { display: inline-flex; align-items: center; gap: 12px; border: 1px solid var(--field-line); border-radius: 10px; padding: 6px; margin-bottom: 14px; }
+    .qty button { width: 36px; height: 36px; border: 0; border-radius: 8px; background: #1d1d1d; color: var(--gold); font-size: 20px; cursor: pointer; }
+    .qty span { min-width: 30px; text-align: center; font-size: 18px; font-weight: 700; }
+    .pm-perks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; text-align: center; font-size: 12px; color: #ccc; }
+    .pm-perks span { display: block; font-size: 20px; }
+
+    /* ---------- Order ---------- */
+    .order-wrap { display: grid; grid-template-columns: 1fr; gap: 22px; max-width: 1100px; margin: 0 auto; align-items: start; }
+    .order-box { background: var(--panel); border: 1px solid #3a2f15; border-radius: 14px; padding: 28px; }
+    .order-box label { display: block; font-size: 14px; color: #d6d6d6; margin-top: 6px; }
+    .order-box input, .order-box textarea, .order-box select { width: 100%; padding: 13px 14px; margin: 6px 0 14px; background: var(--field); color: #fff; border: 1px solid var(--field-line); border-radius: 8px; font: inherit; font-size: 15px; }
+    .order-box textarea { min-height: 100px; resize: vertical; }
+    .order-box input:focus, .order-box textarea:focus, .order-box select:focus { outline: none; border-color: var(--gold); }
+    .order-box .btn { width: 100%; margin-top: 6px; }
+    #msg { margin-top: 14px; color: var(--gold); }
+    .summary { background: var(--panel); border: 1px solid #3a2f15; border-radius: 14px; padding: 22px; }
+    .summary h3 { color: var(--gold); margin-bottom: 12px; font-size: 18px; }
+    #cart { color: #bbb; }
+    .cart-item { background: #181818; border: 1px solid var(--field-line); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+    .cart-item strong { color: var(--gold); font-size: 17px; }
+    .cart-item p { color: #bbb; margin: 6px 0; }
+    .cart-item h3 { color: var(--gold); margin-top: 10px; }
+    .cart-item label { color: #ddd; }
+
+    /* ---------- Reviews ---------- */
+    .rev-summary { display: grid; grid-template-columns: 220px 1fr; gap: 24px; max-width: 900px; margin: 0 auto 28px; background: var(--card); border: 1px solid #332a14; border-radius: 14px; padding: 22px; align-items: center; }
+    .rev-score { text-align: center; }
+    .rev-score b { font-size: 48px; color: #fff; display: block; line-height: 1.1; }
+    .rev-score .stars { color: var(--gold); font-size: 18px; letter-spacing: 2px; }
+    .rev-score small { color: var(--muted); }
+    .rev-bar { display: grid; grid-template-columns: 40px 1fr 44px; gap: 10px; align-items: center; font-size: 13px; color: #ccc; margin: 4px 0; }
+    .rev-bar .track { height: 8px; background: #222; border-radius: 6px; overflow: hidden; }
+    .rev-bar .fill { height: 100%; background: linear-gradient(90deg, #c99a2e, var(--gold2)); }
+    #reviewsList { max-width: 900px; margin: 0 auto 26px; }
+    #reviewsList article { background: var(--card); border: 1px solid #332a14; border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+    #reviewsList article h4 { color: var(--gold); margin-bottom: 4px; }
+    #reviewsList article p { color: #bbb; }
+    .rev-center { text-align: center; }
+    .form-title { color: var(--gold); text-align: center; margin-bottom: 14px; }
+    #reviewForm label { display: block; font-size: 14px; color: #d6d6d6; margin-top: 6px; }
+    #reviewForm input, #reviewForm textarea, #reviewForm select { width: 100%; padding: 13px 14px; margin: 6px 0 14px; background: var(--field); color: #fff; border: 1px solid var(--field-line); border-radius: 8px; font: inherit; font-size: 15px; }
+    #reviewForm textarea { min-height: 100px; resize: vertical; }
+    #reviewForm .btn { width: 100%; }
+    #reviewMsg { margin-top: 12px; color: var(--gold); }
+
+    /* ---------- About & Contact ---------- */
+    .about-text { max-width: 760px; margin: 0 auto; text-align: center; color: #b5b5b5; font-size: 17px; white-space: pre-line; }
+    #about .btn { margin: 6px; }
+    .contact-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; max-width: 1100px; margin: 0 auto; }
+    .contact-card { background: var(--card); border: 1px solid #332a14; border-radius: 14px; padding: 24px 18px; text-align: center; }
+    .contact-card .ic { font-size: 28px; color: var(--gold); display: block; margin-bottom: 8px; }
+    .contact-card b { display: block; color: var(--gold); margin-bottom: 4px; }
+    .contact-card p { color: #ccc; font-size: 15px; }
+    .contact-card a { color: var(--gold); }
+
+    /* ---------- Footer ---------- */
+    footer { background: #050505; border-top: 1px solid var(--line); padding: 36px 6% 26px; text-align: center; color: #888; }
+    footer .logo { margin: 0 auto 12px; height: 80px; }
+    footer p { margin: 4px 0; }
+    footer a { color: var(--gold); }
+
+    /* ---------- Mobile ---------- */
+    @media (max-width: 1000px) {
+      .cats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .contact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .order-wrap { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 750px) {
+      .site-header { flex-wrap: wrap; justify-content: center; }
+      .logo { height: 56px; }
+      .search { order: 3; flex-basis: 100%; max-width: none; margin-left: 0; }
+      .cart-link { margin-left: auto; }
+      .site-nav { gap: 16px; }
+      .site-nav a { font-size: 13px; }
+      .hero { min-height: 70vh; padding: 60px 6%; }
+      .hero::after { width: 60%; opacity: 0.08; }
+      .block { padding: 48px 5%; }
+      .cats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .pm-grid { grid-template-columns: 1fr; }
+      .rev-summary { grid-template-columns: 1fr; }
+      .order-box, .summary, .modal-box { padding: 20px; }
+    }
+    @media (max-width: 480px) {
+      .contact-grid { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+<style>
+.sx-card{background:linear-gradient(180deg,#151515,#0d0d0d);border:1px solid rgba(212,175,55,.28);border-radius:16px;padding:14px}
+.sx-hero{background:radial-gradient(circle at 80% 0%,rgba(212,175,55,.22),transparent 55%),linear-gradient(135deg,#1a1408,#0b0b0b);border:1px solid rgba(212,175,55,.35);border-radius:16px;padding:20px 16px;text-align:center}
+.sx-feat{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
+.sx-steps{display:grid;gap:10px}
+.sx-step{display:flex;gap:12px;align-items:center;background:#111;border:1px solid rgba(212,175,55,.2);border-radius:12px;padding:10px 12px;color:#ddd}
+.sx-num{flex:0 0 30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#f1d77a,#c9a13a);color:#111;font-weight:700;display:flex;align-items:center;justify-content:center}
+.sx-two{display:grid;grid-template-columns:1fr;gap:14px}
+@media (min-width:720px){.sx-two{grid-template-columns:1.2fr 1fr}.sx-feat{grid-template-columns:repeat(4,1fr)}}
+.card[data-open]{border:1px solid rgba(212,175,55,.22);border-radius:16px;background:linear-gradient(180deg,#141414,#0d0d0d);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;overflow:hidden}
+.card[data-open]:hover{transform:translateY(-3px);border-color:rgba(212,175,55,.6);box-shadow:0 10px 28px rgba(212,175,55,.12)}
+.title::after{content:"";display:block;width:64px;height:2px;margin:10px auto 0;background:linear-gradient(90deg,transparent,#d4af37,transparent)}
+.title h2{background:linear-gradient(90deg,#f3d77a,#c9a13a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero h1{background:linear-gradient(90deg,#f3d77a,#d4af37);-webkit-background-clip:text;background-clip:text;color:transparent}
+.btn:not(.dark){background:linear-gradient(135deg,#f3d77a,#c9a13a);color:#111;border:0}
+.fs-ic{filter:drop-shadow(0 0 8px rgba(212,175,55,.35))}
+@media (min-width:900px){
+#orderForm .summary{float:right;width:44%;margin:0 0 18px 24px;background:linear-gradient(180deg,#151515,#0d0d0d);border:1px solid rgba(212,175,55,.28);border-radius:16px;padding:16px}
+#orderForm > label{margin-top:4px}
+}
+#orderForm .summary h3{color:#e8c35a;margin-top:0}
+#orderForm button[type="submit"]{width:100%;margin-top:8px}
+.dnav{display:none}
+@media (min-width:900px){
+.hamb{display:none}
+.dnav{display:flex;gap:18px;align-items:center;margin-left:auto;margin-right:12px}
+.dnav a{color:#e8c35a;text-decoration:none;font-size:15px;letter-spacing:.3px;padding:6px 2px;border-bottom:1px solid transparent}
+.dnav a:hover{border-bottom-color:#d4af37}
+.dnav-btn{background:linear-gradient(135deg,#f3d77a,#c9a13a);color:#111;border:0;border-radius:999px;padding:7px 14px;font-weight:600;cursor:pointer}
+}
+.shop-side{display:none}
+.side-cats button{display:block;width:100%;text-align:left;background:#111;color:#e8c35a;border:1px solid rgba(212,175,55,.25);border-radius:10px;padding:8px 10px;margin-bottom:6px;cursor:pointer}
+.side-price{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.side-price input{background:#0c0c0c;color:#fff;border:1px solid var(--field-line);border-radius:10px;padding:8px;width:100%}
+.product-card.sx-hide{display:none !important}
+@media (min-width:900px){
+#shopSlot{display:grid;grid-template-columns:240px 1fr;gap:20px;align-items:start}
+.shop-side{display:block;position:sticky;top:90px}
+}
+.pm-img{border:1px solid rgba(212,175,55,.3);border-radius:16px;overflow:hidden;background:#0d0d0d}
+.pm-name{color:#e8c35a;font-size:22px;font-weight:700;letter-spacing:.2px}
+.pm-price{color:#f3d77a;font-size:24px;font-weight:700}
+.pm-perks{display:grid;grid-template-columns:1fr;gap:8px;margin:14px 0}
+.pm-perks>div{background:linear-gradient(180deg,#151515,#0d0d0d);border:1px solid rgba(212,175,55,.25);border-radius:12px;padding:10px 12px;color:#e8c35a;font-size:14px;display:flex;gap:10px;align-items:center}
+@media (min-width:720px){.pm-perks{grid-template-columns:repeat(3,1fr)}.pm-perks>div{flex-direction:column;text-align:center}}
+#pmOrder{width:100%;margin-top:6px}
+.pm-tabs{display:flex;gap:8px;margin:12px 0}
+.pm-tabs button{flex:1;background:#111;color:#e8c35a;border:1px solid rgba(212,175,55,.25);border-radius:999px;padding:8px 10px;cursor:pointer}
+.pm-tabs button.on{background:linear-gradient(135deg,#f3d77a,#c9a13a);color:#111;border-color:transparent;font-weight:600}
+#pmDesc[hidden],#pmExtra[hidden],#pmReviews[hidden]{display:none!important}
+.trk{display:grid;gap:12px;margin-top:10px}
+.trk-step{display:flex;align-items:center;gap:12px;color:#777}
+.trk-dot{width:14px;height:14px;border-radius:50%;border:2px solid #555;flex:0 0 14px}
+.trk-step.on{color:#e8c35a}
+.trk-step.on .trk-dot{background:linear-gradient(135deg,#f3d77a,#c9a13a);border-color:#d4af37;box-shadow:0 0 10px rgba(212,175,55,.5)}
+.rev-summary{display:grid;grid-template-columns:1fr;gap:16px;background:linear-gradient(180deg,#151515,#0d0d0d);border:1px solid rgba(212,175,55,.28);border-radius:16px;padding:16px;margin-bottom:16px}
+@media (min-width:720px){.rev-summary{grid-template-columns:200px 1fr;align-items:center}}
+.rev-score b{font-size:40px;color:#f3d77a;display:block;line-height:1}
+.rev-score .stars{color:#d4af37;font-size:18px;letter-spacing:2px;margin:6px 0}
+.rev-score small{color:#a8a8a8}
+.rev-bar{display:grid;grid-template-columns:48px 1fr 44px;gap:10px;align-items:center;margin:6px 0;color:#ccc;font-size:13px}
+.rev-bar .track{height:8px;background:#1e1e1e;border-radius:999px;overflow:hidden;border:1px solid rgba(212,175,55,.18)}
+.rev-bar .fill{height:100%;background:linear-gradient(90deg,#c9a13a,#f3d77a);border-radius:999px}
+.pol-wrap{display:grid;gap:14px}
+.pol-view{background:linear-gradient(180deg,#151515,#0d0d0d);border:1px solid rgba(212,175,55,.28);border-radius:16px;padding:16px;min-height:200px}
+@media (min-width:720px){.pol-wrap{grid-template-columns:260px 1fr;align-items:start}}
+.dash-wrap{display:grid;gap:14px}
+.dash-side{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.dash-side button{background:#111;color:#e8c35a;border:1px solid rgba(212,175,55,.25);border-radius:999px;padding:8px 12px;white-space:nowrap;cursor:pointer}
+@media (min-width:900px){
+.dash-wrap{grid-template-columns:220px 1fr;align-items:start}
+.dash-side{flex-direction:column;position:sticky;top:90px;overflow:visible}
+.dash-side button{border-radius:12px;text-align:left}
+}
+.menu-grid{display:flex;flex-direction:column;gap:8px}
+.menu-h{color:#9a9a9a;font-size:13px;letter-spacing:.5px;margin:14px 4px 4px;text-transform:uppercase}
+.menu-grid .menu-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;text-decoration:none}
+#sxNotice{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px}
+#sxNotice .sxn-box{width:100%;max-width:420px;background:linear-gradient(180deg,#151515,#0b0b0b);border:1px solid rgba(212,175,55,.4);border-radius:18px;padding:22px 18px;color:#eee;position:relative}
+#sxNotice h2{color:#f3d77a;margin:0 0 10px;font-size:22px}
+#sxNotice p{color:#cfcfcf;line-height:1.7;margin:0 0 12px}
+#sxNotice .sxn-x{position:absolute;top:10px;right:12px;background:none;border:0;color:#e8c35a;font-size:24px;cursor:pointer}
+#sxNotice .sxn-btns{display:grid;gap:10px;margin-top:8px}
+.rel-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.rel-item{background:linear-gradient(180deg,#151515,#0d0d0d);border:1px solid rgba(212,175,55,.25);border-radius:14px;padding:8px;text-align:left;color:#eee;cursor:pointer}
+.rel-item img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;display:block;margin-bottom:6px}
+.rel-item span{display:block;font-size:13px;line-height:1.4}
+.rel-item b{color:#f3d77a;font-size:14px}
+@media (min-width:720px){.rel-grid{grid-template-columns:repeat(4,1fr)}}
+.bn-acc{background:none;border:0;color:inherit;font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.bn-acc span{font-size:18px}
+.acc-sheet{position:fixed;bottom:62px;left:0;right:0;background:#111;border-top:1px solid rgba(212,175,55,.3);padding:12px 14px;display:grid;gap:8px;z-index:60}
+.acc-sheet[hidden]{display:none}
+.acc-sheet button{background:#161616;color:#e8c35a;border:1px solid rgba(212,175,55,.25);border-radius:12px;padding:10px 12px;text-align:left;font:inherit;cursor:pointer}
+@media (max-width:899px){
+#shopSlot{display:grid;grid-template-columns:112px 1fr;gap:8px;align-items:start}
+.shop-side{display:block;position:sticky;top:70px}
+.shop-side .sx-card{padding:6px}
+.shop-side .side-price{display:none}
+.shop-side b{font-size:12px}
+.side-cats button{font-size:12px;padding:6px 8px;margin-bottom:4px}
+}
+</style>
+<style>
+.dtop{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(212,175,55,.28);background:#0a0a0a;position:sticky;top:0;z-index:5}
+.dbrand b{color:#f3d77a;letter-spacing:2px}.dbrand span{color:#c9a13a;font-size:13px}
+.dtabs{display:flex;gap:8px;flex-wrap:wrap}
+.dtab{background:#111;color:#e8c35a;border:1px solid rgba(212,175,55,.3);border-radius:999px;padding:7px 12px;cursor:pointer;font:inherit}
+.dtab.on{background:linear-gradient(135deg,#f3d77a,#c9a13a);color:#111;border-color:transparent;font-weight:600}
+main{max-width:1000px;margin:0 auto;padding:16px;font-family:system-ui,"Hind Siliguri",sans-serif;color:#eee;background:#0a0a0a;min-height:100vh}
+:root{--muted:#a8a8a8;--field-line:#3a321d}
+</style>
+</head>
+<body>
+
+<div class="dtop"><div class="dbrand"><b>SAREXBD</b> <span>Dropship</span></div>
+  <nav class="dtabs">
+    <button class="dtab on" data-page="home">হোম</button>
+    <button class="dtab" data-page="register">রেজিস্ট্রেশন</button>
+    <button class="dtab" data-page="login">প্রবেশ</button>
+    <button class="dtab" data-page="guide">গাইড</button>
+  </nav>
+</div>
+
+<main>
+  <section class="page" id="page-home">
+    <div class="sx-hero">
+      <div style="font-size:12px;letter-spacing:3px;color:#c9a13a">SAREXBD DROPSHIP</div>
+      <h2 style="color:#e8c35a;margin:6px 0 4px">আপনার ব্যবসা, আমাদের সাথে</h2>
+      <div style="color:#ccc">আমাদের পণ্য শেয়ার করুন, অর্ডার এলে আমরা ডেলিভারি করব, আপনি কমিশন পাবেন।</div>
+      <button class="btn" type="button" data-page="register" style="margin-top:14px">এখনই যোগ দিন →</button>
+    </div>
+    <div class="sx-feat">
+      <div class="sx-card" style="text-align:center"><div style="font-size:22px">🏷️</div><div style="color:#e8c35a;margin-top:6px;font-size:14px">উচ্চ কমিশন</div></div>
+      <div class="sx-card" style="text-align:center"><div style="font-size:22px">🚚</div><div style="color:#e8c35a;margin-top:6px;font-size:14px">দ্রুত ডেলিভারি</div></div>
+      <div class="sx-card" style="text-align:center"><div style="font-size:22px">🛡️</div><div style="color:#e8c35a;margin-top:6px;font-size:14px">বিশ্বস্ত ও নিরাপদ</div></div>
+      <div class="sx-card" style="text-align:center"><div style="font-size:22px">📈</div><div style="color:#e8c35a;margin-top:6px;font-size:14px">একসাথে এগিয়ে চলি</div></div>
+    </div>
+    <h3 style="color:#e8c35a;margin:18px 0 8px">কীভাবে কাজ করে</h3>
+    <div class="sx-steps">
+      <div class="sx-step"><div class="sx-num">1</div><div>রেজিস্ট্রেশন করুন</div></div>
+      <div class="sx-step"><div class="sx-num">2</div><div>পণ্যের লিংক শেয়ার করুন</div></div>
+      <div class="sx-step"><div class="sx-num">3</div><div>অর্ডার আসবে, আমরা ডেলিভারি করব</div></div>
+      <div class="sx-step"><div class="sx-num">4</div><div>কমিশন পাবেন</div></div>
+    </div>
+  </section>
+
+  <section class="page" id="page-register" hidden>
+    <div class="sx-two"><div class="sx-card">
+      <p style="color:#ccc;margin-top:0">দ্রুত আবেদন করুন। আবেদনের পর আমরা WhatsApp বা ফোনে যোগাযোগ করব।</p>
+      <input id="pName" placeholder="আপনার নাম" style="width:100%;background:#0c0c0c;color:#fff;border:1px solid var(--field-line);border-radius:10px;padding:12px;font:inherit;margin:0 0 10px">
+      <input id="pEmail" type="email" placeholder="ইমেইল" style="width:100%;background:#0c0c0c;color:#fff;border:1px solid var(--field-line);border-radius:10px;padding:12px;font:inherit;margin:0 0 10px">
+      <input id="pPhone" inputmode="tel" placeholder="মোবাইল নম্বর" style="width:100%;background:#0c0c0c;color:#fff;border:1px solid var(--field-line);border-radius:10px;padding:12px;font:inherit;margin:0 0 10px">
+      <input id="pWhats" inputmode="tel" placeholder="WhatsApp নম্বর (নিশ্চিত করুন)" style="width:100%;background:#0c0c0c;color:#fff;border:1px solid var(--field-line);border-radius:10px;padding:12px;font:inherit;margin:0 0 10px">
+      <input id="pPass" type="password" placeholder="পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)" style="width:100%;background:#0c0c0c;color:#fff;border:1px solid var(--field-line);border-radius:10px;padding:12px;font:inherit;margin:0 0 10px">
+      <input id="pPass2" type="password" placeholder="পাসওয়ার্ড আবার লিখুন" style="width:100%;background:#0c0c0c;color:#fff;border:1px solid var(--field-line);border-radius:10px;padding:12px;font:inherit;margin:0 0 10px">
+      <input id="pBkash" inputmode="tel" placeholder="কমিশন পাওয়ার বিকাশ নম্বর" style="width:100%;background:#0c0c0c;color:#fff;border:1px solid var(--field-line);border-radius:10px;padding:12px;font:inherit;margin:0 0 10px">
+      <div id="prRules" style="white-space:pre-line;color:#ccc;margin:6px 0 12px;line-height:1.7">১. নিজের পরিচয় সঠিকভাবে দেবেন।
+২. পণ্যের ভুল বা অতিরঞ্জিত দাবি করবেন না।
+৩. স্প্যাম বা জোর করে বার্তা পাঠাবেন না।
+৪. নিজের অর্ডারে কমিশন নেবেন না।
+৫. ভুল বা নিয়মভঙ্গ প্রমাণিত হলে পার্টনারশিপ বাতিল ও কমিশন বাতিল হতে পারে।</div>
+      <label style="display:block;margin:0 0 12px;color:#ddd"><input type="checkbox" id="pAgree"> আমি উপরের নিয়মাবলিতে সম্মত</label>
+      <button class="btn" id="pBtn" type="button">আবেদন পাঠান</button>
+      <div id="pMsg" style="color:var(--muted);margin-top:10px;font-size:14px"></div>
+    </div>
+    <div class="sx-card"><h3 style="color:#e8c35a;margin-top:0">Start Your Online Business</h3>
+      <div class="sx-steps">
+        <div class="sx-step"><div class="sx-num">✓</div><div>Low Investment — শুধু প্রচার করলেই হবে</div></div>
+        <div class="sx-step"><div class="sx-num">✓</div><div>High Commission — প্রতি অর্ডারে কমিশন</div></div>
+        <div class="sx-step"><div class="sx-num">✓</div><div>Full Support — আমরা ডেলিভারি ও সাপোর্ট দেব</div></div>
+      </div></div></div>
+  </section>
+
+  <section class="page" id="page-login" hidden>
+    <div class="sx-card">
+      <h3 style="color:#e8c35a;margin-top:0">ড্রপশিপার লগইন</h3>
+      <p style="color:#ccc;margin-top:0">ইমেইল বা মোবাইল নম্বর ও পাসওয়ার্ড দিয়ে ঢুকুন।</p>
+      <input id="ppPhone" placeholder="ইমেইল বা মোবাইল নম্বর" style="width:100%;background:#0c0c0c;color:#fff;border:1px solid var(--field-line);border-radius:10px;padding:12px;font:inherit;margin:0 0 10px">
+      <input id="ppPass" type="password" placeholder="পাসওয়ার্ড" style="width:100%;background:#0c0c0c;color:#fff;border:1px solid var(--field-line);border-radius:10px;padding:12px;font:inherit;margin:0 0 10px">
+      <button class="btn" id="pLoginBtn" type="button">লগইন করুন</button>
+      <div id="pNotice"></div>
+      <div id="pPortal" style="margin-top:14px;color:#ddd;line-height:1.8"></div>
+      <div id="pPwBox" style="margin-top:14px"></div>
+      <button class="btn dark" id="pForgot" type="button" style="margin-top:10px">পাসওয়ার্ড ভুলে গেছেন?</button>
+      <div id="pResetBox" style="margin-top:12px;color:#ddd;line-height:1.7"></div>
+      <button class="btn dark" id="recOpen" type="button" style="margin-top:10px">কোড ভুলে গেছেন?</button>
+      <div id="recBox" style="margin-top:10px"></div>
+      <div style="text-align:center;margin-top:14px;color:#aaa">অ্যাকাউন্ট নেই? <button class="btn dark" type="button" data-page="register" style="margin-top:6px">রেজিস্ট্রেশন করুন</button></div>
+    </div>
+  </section>
+
+  <section class="page" id="page-guide" hidden>
+    <div class="sx-card"><h3 style="color:#e8c35a;margin-top:0">ড্রপশিপিং গাইড</h3>
+      <ol style="line-height:1.9;padding-left:18px">
+        <li>রেজিস্ট্রেশন করুন: নাম, ইমেইল, মোবাইল, WhatsApp, বিকাশ নম্বর ও পাসওয়ার্ড।</li>
+        <li>আমরা WhatsApp বা ফোনে যোগাযোগ করব।</li>
+        <li>যাচাই শেষে অনুমোদন পাবেন।</li>
+        <li>প্রবেশ করে পরিচয়পত্র ও ছবি জমা দিন।</li>
+        <li>পণ্যের লিংক শেয়ার করুন। লিংকে অর্ডার হলে কমিশন পাবেন।</li>
+      </ol>
+      <button class="btn" type="button" data-page="register">এখনই যোগ দিন</button>
+    </div>
+  </section>
+</main>
+
+<script>
+const URL_ = "https://kkjyhhxkdgcbtwysftjt.supabase.co";
+const KEY_ = "sb_publishable_FLYJFyWSJd2-_KVSy_ZMRA_cv9vRKs1";
+const supabaseClient = window.supabase.createClient(URL_, KEY_);
+</script>
+<script>
+    (function () {
+      const qs = new URLSearchParams(location.search);
+      const ref = qs.get("ref");
+      const pid = qs.get("p");
+      let vis = localStorage.getItem("sx_visitor");
+      if (!vis) {
+        vis = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (String(Date.now()) + Math.random().toString(36).slice(2));
+        localStorage.setItem("sx_visitor", vis);
+      }
+      if (ref) {
+        localStorage.setItem("sx_ref", ref.toUpperCase());
+        supabaseClient.rpc("partner_visit", { p_code: ref, p_visitor: vis });
+      }
+      if (pid) setTimeout(function () { if (window.openProductDetail) window.openProductDetail(pid); }, 1500);
+    })();
+
+    async function showDash() {
+      const out = document.getElementById("pdOut");
+      const code = (document.getElementById("pdCode").value || "").trim();
+      if (!code) { out.textContent = "পার্টনার কোড লিখুন।"; return; }
+      out.textContent = "খোঁজা হচ্ছে...";
+      const r = await supabaseClient.rpc("partner_dashboard", { p_code: code });
+      if (r.error || !r.data) { out.textContent = "এই কোডে অনুমোদিত পার্টনার পাওয়া যায়নি।"; return; }
+      const d = r.data;
+      out.innerHTML = "ক্লিক: <b>" + d.clicks + "</b><br>মোট অর্ডার: <b>" + d.orders + "</b><br>সফল ডেলিভারি: <b>" + d.delivered + "</b><br>বাতিল অর্ডার: <b>" + d.cancelled + "</b><br>মোট কমিশন: <b>৳" + d.earned + "</b><br>পাওনা কমিশন: <b>৳" + d.pending + "</b><br>পরিশোধিত: <b>৳" + d.paid + "</b><br><br>আপনার লিংক: sarexbd115.github.io/?ref=" + code.toUpperCase();
+    }
+
+    function taka(n) {
+      return "৳" + Math.round(Number(n) || 0).toLocaleString("en-US");
+    }
+    function unitPrice(p) {
+      const base = Number(p.price) || 0;
+      const d = Number(p.discount_percent) || 0;
+      return d > 0 ? Math.round(base * (100 - d) / 100) : base;
+    }
+    function cleanPhone(v) {
+      let d = String(v || "").replace(/\D/g, "");
+      if (d.indexOf("880") === 0) d = "0" + d.slice(3);
+      return d;
+    }
+
+    function esc(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+      });
+    }
+
+    let RULES = {};
+    let PORTAL = null;
+    const DOC_KINDS = ["nid_front","nid_back","selfie","bkash_proof","social_proof"];
+    const DOC_INPUT = {nid_front:"pfNidFront",nid_back:"pfNidBack",selfie:"pfSelfie",bkash_proof:"pfBkash",social_proof:"pfSocialProof"};
+    const PF_INP = "width:100%;background:#0c0c0c;color:#fff;border:1px solid var(--field-line);border-radius:10px;padding:12px;font:inherit;margin:0 0 10px";
+    const PF_LBL = "display:block;margin:6px 0 4px;color:var(--muted)";
+
+    async function loadRules() {
+      const r = await supabaseClient.from("partner_field_rules").select("*").order("sort_order");
+      RULES = {};
+      (r.data || []).forEach(function (x) { RULES[x.key] = x; });
+    }
+    function isReq(k) { return !!(RULES[k] && RULES[k].required && RULES[k].enabled !== false); }
+    function shown(k) { return !RULES[k] || RULES[k].enabled !== false; }
+    function star(k) { return isReq(k) ? " *" : ""; }
+    function lbl(k) { return RULES[k] ? RULES[k].label : k; }
+
+    async function portalLogin() {
+      const out = document.getElementById("pPortal");
+      const id = (document.getElementById("ppPhone").value || "").trim();
+      const pass = (document.getElementById("ppPass").value || "");
+      if (!id) { out.textContent = "ইমেইল বা মোবাইল নম্বর দিন।"; return; }
+      out.textContent = "খোঁজা হচ্ছে...";
+      await withTimeout(loadRules(), 8000);
+      const r = await withTimeout(supabaseClient.rpc("partner_login_id", { p_ident: id, p_pass: pass }), 12000);
+      if (r.error && /wrong_password/.test(r.error.message)) { out.textContent = "পাসওয়ার্ড ভুল।"; PORTAL = null; return; }
+      if (r.error || !r.data) { out.textContent = "ইমেইল/মোবাইল বা পাসওয়ার্ড মেলেনি।"; PORTAL = null; return; }
+      PORTAL = { code: r.data.code, phone: r.data.phone, ident: id, pass: pass, data: r.data };
+      const rememberEl = document.getElementById("ppRemember");
+      if (rememberEl && rememberEl.checked) localStorage.setItem("sx_ident", id); else localStorage.removeItem("sx_ident");
+      renderPortal();
+    }
+
+    async function refreshPortal() {
+      if (!PORTAL) return;
+      const r = await supabaseClient.rpc("partner_login_id", { p_ident: PORTAL.ident, p_pass: PORTAL.pass });
+      if (r.data) { PORTAL.data = r.data; renderPortal(); }
+    }
+
+    function renderPortal() {
+      const out = document.getElementById("pPortal");
+      const d = PORTAL.data;
+      renderPwBox(d);
+      const nt = document.getElementById("pNotice");
+      if (nt) nt.innerHTML = d.notice ? '<div style="background:#2a1f10;border:1px solid #e8a33a;padding:10px 12px;border-radius:10px;margin-bottom:12px;color:#f5e6c8">📢 ' + esc(d.notice) + '</div>' : "";
+      if (d.status === "Rejected") { out.textContent = "দুঃখিত, আপনার আবেদনটি অনুমোদিত হয়নি। আরও জানতে যোগাযোগ করুন।"; return; }
+      if (d.status === "Suspended") { out.textContent = "আপনার পার্টনার অ্যাকাউন্টটি সাময়িকভাবে স্থগিত আছে। আরও জানতে যোগাযোগ করুন।"; return; }
+      if (d.status === "Approved") { renderApproved(); return; }
+      if (d.complete) { out.innerHTML = "<b>আপনার সব তথ্য জমা হয়েছে।</b><br>যাচাই হলে অনুমোদন পাবেন এবং এই পাতায় আপনার ড্যাশবোর্ড খুলবে।"; return; }
+      renderForm();
+    }
+
+    function renderForm() {
+      const out = document.getElementById("pPortal");
+      const d = PORTAL.data;
+      const pf = d.profile || {};
+      const docs = pf.docs || [];
+      const miss = (d.missing || []).map(lbl).join(", ");
+      const fileRow = function (k) {
+        const done = docs.indexOf(k) >= 0;
+        return '<label style="' + PF_LBL + '">' + esc(lbl(k)) + star(k) + (done ? " ✓ জমা হয়েছে" : "") + '</label>' +
+          '<input id="' + DOC_INPUT[k] + '" type="file" accept="image/*" style="margin-bottom:10px">';
+      };
+      const parts = [];
+      parts.push('<div style="color:#e8c35a;margin-bottom:8px">বাকি তথ্য দিন: ' + esc(miss || "—") + '</div>');
+      if (shown("partner_type")) parts.push(
+        '<label style="' + PF_LBL + '">পার্টনারের ধরন' + star("partner_type") + '</label>' +
+        '<select id="pfType" style="' + PF_INP + '"><option value="personal">ব্যক্তিগত</option><option value="group">গ্রুপ / কমিউনিটি</option><option value="page">ফেসবুক পেজ</option><option value="website">ওয়েবসাইট / ব্লগ</option><option value="youtube">YouTube / TikTok চ্যানেল</option></select>');
+      if (shown("id_number")) parts.push(
+        '<label style="' + PF_LBL + '">পরিচয়পত্রের ধরন</label>' +
+        '<select id="pfIdType" style="' + PF_INP + '"><option value="nid">জাতীয় পরিচয়পত্র (১৮+)</option><option value="birth">জন্ম নিবন্ধন নম্বর</option><option value="guardian">অভিভাবকের পরিচয়পত্র (১৮ বছরের নিচে)</option></select>' +
+        '<label style="' + PF_LBL + '">' + esc(lbl("id_number")) + star("id_number") + '</label>' +
+        '<input id="pfIdNum" style="' + PF_INP + '">');
+      if (shown("social_link")) parts.push(
+        '<label style="' + PF_LBL + '">' + esc(lbl("social_link")) + star("social_link") + '</label>' +
+        '<input id="pfSocial" value="' + esc(pf.social_link || "") + '" style="' + PF_INP + '">');
+      if (shown("district")) parts.push(
+        '<label style="' + PF_LBL + '">' + esc(lbl("district")) + star("district") + '</label>' +
+        '<input id="pfDistrict" value="' + esc(pf.district || "") + '" style="' + PF_INP + '">');
+      if (shown("upazila")) parts.push(
+        '<label style="' + PF_LBL + '">' + esc(lbl("upazila")) + star("upazila") + '</label>' +
+        '<input id="pfUpazila" value="' + esc(pf.upazila || "") + '" style="' + PF_INP + '">');
+      if (shown("signature")) parts.push(
+        '<label style="' + PF_LBL + '">' + esc(lbl("signature")) + star("signature") + '</label>' +
+        '<input id="pfSig" placeholder="আপনার পুরো নাম" style="' + PF_INP + '">');
+      DOC_KINDS.forEach(function (k) { if (shown(k)) parts.push(fileRow(k)); });
+      parts.push('<button class="btn" id="pfSave" type="button">তথ্য জমা দিন</button><div id="pfMsg" style="color:var(--muted);margin-top:10px;font-size:14px"></div>');
+      out.innerHTML = parts.join("");
+      const sel = document.getElementById("pfType");
+      if (sel && pf.partner_type) sel.value = pf.partner_type;
+    }
+
+    async function renderApproved() {
+      const out = document.getElementById("pPortal");
+      const auth = { p_code: PORTAL.code, p_phone: PORTAL.phone, p_pass: PORTAL.pass };
+      const s = await withTimeout(supabaseClient.rpc("partner_dashboard_pw", auth), 12000);
+      const ro = await withTimeout(supabaseClient.rpc("partner_recent_orders", auth), 12000);
+      const p = await withTimeout(supabaseClient.from("products").select("id,name,image_url").order("id"), 12000);
+      const d = (s && s.data) || {};
+      const orders = (ro && ro.data) || [];
+      const pe = await withTimeout(supabaseClient.rpc("partner_pending_orders", auth), 12000);
+      const pend = (pe && pe.data) || [];
+      const pendHtml = pend.length ? pend.map(function (o) {
+        return '<div class="sx-card" style="margin-bottom:10px"><b>#' + esc(o.order_id) + '</b> · ' + esc(o.name || "") + ' · ' + esc(o.phone || "") +
+          '<div style="color:#ccc;font-size:14px;margin:4px 0">ঠিকানা: ' + esc(o.address || "-") + '</div>' +
+          '<div style="color:#ccc;font-size:14px">পণ্য: ' + esc(o.product || "") + ' × ' + esc(o.quantity || 1) + ' · মোট: ৳' + esc(o.total || 0) + '</div>' +
+          '<div style="display:flex;gap:8px;margin-top:8px"><button class="btn" type="button" data-pconfirm="' + esc(o.order_id) + '">✔ নিশ্চিত করুন</button><button class="btn dark" type="button" data-preject="' + esc(o.order_id) + '">বাতিল</button></div></div>';
+      }).join("") : '<p style="color:#a8a8a8">নিশ্চিতের অপেক্ষায় কোনো অর্ডার নেই।</p>';
+      const base = "https://sarexbd115.github.io/?ref=" + PORTAL.code;
+      const shareMsg = "SAREXBD প্রিমিয়াম লেদার পণ্য কিনুন: " + base;
+      const eb = encodeURIComponent(base), em = encodeURIComponent(shareMsg);
+      const stat = function (label, val) {
+        return '<div class="sx-card" style="text-align:center"><div style="color:#a8a8a8;font-size:13px">' + label + '</div><div style="color:#e8c35a;font-size:20px;font-weight:700;margin-top:4px">' + val + '</div></div>';
+      };
+      const orderRows = orders.length ? orders.map(function (o) {
+        return '<div class="sx-card" style="display:flex;justify-content:space-between;gap:8px;margin-bottom:8px"><div><b>#' + esc(o.order_id) + '</b> · ' + esc(o.status || "") +
+          '<div style="color:#a8a8a8;font-size:13px">' + esc(String(o.created_at || "").slice(0, 10)) + '</div></div>' +
+          '<div style="text-align:right">৳' + esc(o.commission) + '<div style="color:#a8a8a8;font-size:13px">' + esc(o.commission_status || "") + '</div></div></div>';
+      }).join("") : '<p style="color:#a8a8a8">এখনো কোনো অর্ডার নেই।</p>';
+      const links = ((p && p.data) || []).map(function (x) {
+        const url = "https://sarexbd115.github.io/?ref=" + PORTAL.code + "&p=" + x.id;
+        const img = x.image_url ? '<img src="' + esc(x.image_url) + '" alt="' + esc(x.name) + '" loading="lazy" style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1px solid #d4af37;display:block;margin-bottom:8px">' : '';
+        return '<div class="sx-card" style="margin-bottom:10px">' + img + '<b>' + esc(x.name) + '</b><br><small style="color:#bbb">' + esc(url) + '</small><br><button class="btn" type="button" data-copy="' + esc(url) + '" style="margin-top:6px">লিংক কপি করুন</button></div>';
+      }).join("");
+      out.innerHTML =
+        '<div class="dash-wrap"><aside class="dash-side"><button type="button" data-dscroll="dHome">📊 ড্যাশবোর্ড</button><button type="button" data-dscroll="dProducts">📦 পণ্য ও লিংক</button><button type="button" data-dscroll="dOrders">🧾 অর্ডার</button><button type="button" data-dscroll="dPay">💰 কমিশন ও পেমেন্ট</button><button type="button" data-dscroll="dWebsite">🌐 ওয়েবসাইট লিংক</button><button type="button" data-dlogout="1">↩ লগআউট</button></aside><div class="dash-main">' +
+        '<div class="sx-card" id="dHome" style="margin-bottom:12px"><b style="color:#e8c35a;font-size:18px">স্বাগতম, ' + esc(PORTAL.data.name || "") + '</b>' +
+        '<div style="color:#a8a8a8;font-size:13px">পার্টনার কোড: ' + esc(PORTAL.code) + ' <button class="btn dark" type="button" data-copy="' + esc(PORTAL.code) + '" style="margin-left:6px">কপি</button></div></div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' + stat("মোট অর্ডার", d.orders || 0) + stat("সফল ডেলিভারি", d.delivered || 0) +
+        stat("বাতিল", d.cancelled || 0) + stat("ক্লিক", d.clicks || 0) + stat("মোট কমিশন", "৳" + (d.earned || 0)) + stat("পাওনা", "৳" + (d.pending || 0)) + '</div>' +
+        '<div class="sx-card" id="dPay" style="margin-top:12px"><b style="color:#e8c35a">কমিশন পরিশোধ</b>' +
+        '<div style="color:#a8a8a8;font-size:13px;margin:4px 0 8px">পাওনা: ৳' + (d.pending || 0) + ' · পরিশোধিত: ৳' + (d.paid || 0) + '</div>' +
+        '<button class="btn" id="payReq" type="button">পরিশোধের অনুরোধ দিন</button><div id="payMsg" style="color:#a8a8a8;margin-top:8px;font-size:14px"></div></div>' +
+        '<h3 style="color:#e8c35a;margin:16px 0 8px">নিশ্চিতের অপেক্ষায় অর্ডার</h3>' + pendHtml + '<h3 id="dOrders" style="color:#e8c35a;margin:16px 0 8px">সাম্প্রতিক অর্ডার</h3>' + orderRows +
+        '<h3 id="dWebsite" style="color:#e8c35a;margin:16px 0 8px">আপনার ওয়েবসাইট লিংক</h3>' +
+        '<div class="sx-card"><small style="color:#bbb">' + esc(base) + '</small>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"><button class="btn" type="button" data-copy="' + esc(base) + '">লিংক কপি</button><button class="btn dark" type="button" data-share="' + esc(base) + '">শেয়ার</button><button class="btn dark" type="button" data-copy="' + esc(shareMsg) + '">শেয়ার টেক্সট কপি</button></div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"><a class="btn dark" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=' + eb + '">Facebook</a><a class="btn dark" target="_blank" rel="noopener" href="https://wa.me/?text=' + em + '">WhatsApp</a><a class="btn dark" target="_blank" rel="noopener" href="fb-messenger://share/?link=' + eb + '">Messenger</a><a class="btn dark" target="_blank" rel="noopener" href="https://t.me/share/url?url=' + eb + '&text=' + em + '">Telegram</a></div></div>' +
+        '<h3 id="dProducts" style="color:#e8c35a;margin:16px 0 8px">পণ্যভিত্তিক লিংক</h3>' + (links || '<p style="color:#a8a8a8">এখনো পণ্য নেই</p>') + '</div></div>';
+    }
+
+    async function partnerConfirm(orderId) {
+      const r = await withTimeout(supabaseClient.rpc("partner_confirm_order", { p_code: PORTAL.code, p_phone: PORTAL.phone, p_pass: PORTAL.pass, p_order_id: Number(orderId) }), 12000);
+      if (r.error || !r.data) { alert("নিশ্চিত করা যায়নি। আবার চেষ্টা করুন।"); return; }
+      renderPortal();
+    }
+
+    async function partnerReject(orderId) {
+      if (!confirm("এই অর্ডারটি বাতিল করবেন?")) return;
+      const r = await withTimeout(supabaseClient.rpc("partner_reject_order", { p_code: PORTAL.code, p_phone: PORTAL.phone, p_pass: PORTAL.pass, p_order_id: Number(orderId) }), 12000);
+      if (r.error || !r.data) { alert("বাতিল করা যায়নি। আবার চেষ্টা করুন।"); return; }
+      renderPortal();
+    }
+
+    async function requestPayout() {
+      const m = document.getElementById("payMsg");
+      m.textContent = "অনুরোধ পাঠানো হচ্ছে...";
+      const r = await withTimeout(supabaseClient.rpc("partner_request_payout", { p_code: PORTAL.code, p_phone: PORTAL.phone, p_pass: PORTAL.pass }), 12000);
+      if (r.error) {
+        const t = r.error.message || "";
+        m.textContent = /already_requested/.test(t) ? "একটি অনুরোধ ইতিমধ্যে অপেক্ষমাণ আছে।" :
+          /no_due/.test(t) ? "পরিশোধযোগ্য কোনো কমিশন নেই।" : "অনুরোধ হয়নি: " + t;
+        return;
+      }
+      m.textContent = "অনুরোধ পাঠানো হয়েছে। আমরা যাচাই করে পরিশোধ করব।";
+    }
+
+    function emailBoxHtml() {
+      return '<div style="border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px">' +
+        '<b style="color:#e8c35a">ইমেইল যোগ করুন</b>' +
+        '<input id="emNew" type="email" placeholder="আপনার ইমেইল" style="' + PF_INP + '">' +
+        '<button class="btn" id="emSave" type="button">ইমেইল সেভ করুন</button><div id="emMsg" style="color:var(--muted);margin-top:8px;font-size:14px"></div></div>';
+    }
+
+    function renderPwBox(d) {
+      const box = document.getElementById("pPwBox");
+      if (!box || !PORTAL) return;
+      const has = !!d.has_password;
+      box.innerHTML = (d.email ? '' : emailBoxHtml()) + '<div style="border:1px solid var(--line);border-radius:10px;padding:12px">' +
+        '<b style="color:#e8c35a">' + (has ? "পাসওয়ার্ড পরিবর্তন" : "ড্যাশবোর্ডের জন্য পাসওয়ার্ড সেট করুন") + '</b>' +
+        (has ? '<input id="pwOld" type="password" placeholder="বর্তমান পাসওয়ার্ড" style="' + PF_INP + '">' : '') +
+        '<input id="pwNew" type="password" placeholder="নতুন পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)" style="' + PF_INP + '">' +
+        '<input id="pwNew2" type="password" placeholder="নতুন পাসওয়ার্ড আবার লিখুন" style="' + PF_INP + '">' +
+        '<button class="btn" id="pwSave" type="button">পাসওয়ার্ড সেভ করুন</button>' +
+        '<div id="pwMsg" style="color:var(--muted);margin-top:8px;font-size:14px"></div></div>';
+    }
+
+    async function portalSetPw() {
+      const msg = document.getElementById("pwMsg");
+      const has = !!PORTAL.data.has_password;
+      const oldP = has ? (document.getElementById("pwOld").value || "") : "";
+      const n1 = document.getElementById("pwNew").value || "";
+      const n2 = document.getElementById("pwNew2").value || "";
+      if (n1.length < 6) { msg.textContent = "পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে।"; return; }
+      if (n1 !== n2) { msg.textContent = "দুটি পাসওয়ার্ড মেলেনি।"; return; }
+      msg.textContent = "সেভ হচ্ছে...";
+      const r = await withTimeout(supabaseClient.rpc("partner_set_password", { p_code: PORTAL.code, p_phone: PORTAL.phone, p_old: oldP, p_new: n1 }), 12000);
+      if (r.error) { msg.textContent = /wrong_password/.test(r.error.message) ? "বর্তমান পাসওয়ার্ড ভুল।" : "সেভ হয়নি: " + r.error.message; return; }
+      PORTAL.pass = n1;
+      msg.textContent = "পাসওয়ার্ড সেভ হয়েছে।";
+      await refreshPortal();
+    }
+
+    async function portalForgot() {
+      const box = document.getElementById("pResetBox");
+      const id = (document.getElementById("ppPhone").value || "").trim();
+      if (!id) { box.textContent = "আগে ইমেইল বা মোবাইল নম্বর লিখুন।"; return; }
+      box.textContent = "অনুরোধ পাঠানো হচ্ছে...";
+      const r = await withTimeout(supabaseClient.rpc("partner_request_reset_id", { p_ident: id }), 12000);
+      if (r.error || !r.data) { box.textContent = "এই তথ্যে কোনো পার্টনার পাওয়া যায়নি।"; return; }
+      box.textContent = "অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে।";
+      await portalResetCheck();
+    }
+
+    async function portalResetCheck() {
+      const box = document.getElementById("pResetBox");
+      const id = (document.getElementById("ppPhone").value || "").trim();
+      const r = await withTimeout(supabaseClient.rpc("partner_reset_status_id", { p_ident: id }), 12000);
+      if (r.error) { box.textContent = "অবস্থা দেখা যায়নি: " + r.error.message; return; }
+      if (r.data === "Approved") {
+        box.innerHTML = '<div style="border:1px solid var(--line);border-radius:10px;padding:12px"><b style="color:#7fd17f">অনুরোধ অনুমোদিত হয়েছে। নতুন পাসওয়ার্ড সেট করুন।</b>' +
+          '<input id="rNew" type="password" placeholder="নতুন পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)" style="' + PF_INP + '">' +
+          '<input id="rNew2" type="password" placeholder="নতুন পাসওয়ার্ড আবার লিখুন" style="' + PF_INP + '">' +
+          '<button class="btn" id="rSave" type="button">নতুন পাসওয়ার্ড সেভ করুন</button><div id="rMsg" style="color:var(--muted);margin-top:8px;font-size:14px"></div></div>';
+      } else if (r.data === "Pending") {
+        box.innerHTML = 'অনুরোধ অপেক্ষমাণ আছে। অ্যাডমিন অনুমোদন দিলে এখানে নতুন পাসওয়ার্ড সেট করতে পারবেন। <button class="btn dark" id="rCheck" type="button" style="margin-top:8px">অবস্থা দেখুন</button>';
+      } else {
+        box.textContent = "কোনো অপেক্ষমাণ অনুরোধ নেই। 'পাসওয়ার্ড ভুলে গেছেন?' চাপুন।";
+      }
+    }
+
+    async function portalResetSet() {
+      const msg = document.getElementById("rMsg");
+      const id = (document.getElementById("ppPhone").value || "").trim();
+      const n1 = document.getElementById("rNew").value || "";
+      const n2 = document.getElementById("rNew2").value || "";
+      if (n1.length < 6) { msg.textContent = "পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে।"; return; }
+      if (n1 !== n2) { msg.textContent = "দুটি পাসওয়ার্ড মেলেনি।"; return; }
+      msg.textContent = "সেভ হচ্ছে...";
+      const r = await withTimeout(supabaseClient.rpc("partner_set_password_reset_id", { p_ident: id, p_new: n1 }), 12000);
+      if (r.error || !r.data) { msg.textContent = "সেভ হয়নি: " + (r.error ? r.error.message : "অনুরোধটি আর সক্রিয় নেই।"); return; }
+      document.getElementById("pResetBox").textContent = "নতুন পাসওয়ার্ড সেট হয়েছে। এখন এই নতুন পাসওয়ার্ড দিয়ে প্রবেশ করুন।";
+    }
+
+    function openRecover() {
+      document.getElementById("recBox").innerHTML =
+        '<div style="border:1px solid var(--line);border-radius:10px;padding:12px">' +
+        '<b style="color:#e8c35a">কোড ফিরে পেতে</b><div style="color:var(--muted);font-size:14px;margin:6px 0">আবেদনের সময় দেওয়া মোবাইল ও বিকাশ নম্বর লিখুন</div>' +
+        '<input id="recPhone" inputmode="tel" placeholder="আবেদনের মোবাইল নম্বর" style="' + PF_INP + '">' +
+        '<input id="recBkash" inputmode="tel" placeholder="বিকাশ নম্বর" style="' + PF_INP + '">' +
+        '<button class="btn" id="recBtn" type="button">কোড দেখুন</button><div id="recOut" style="margin-top:10px;color:#ddd"></div></div>';
+    }
+
+    async function recoverCode() {
+      const out = document.getElementById("recOut");
+      const phone = (document.getElementById("recPhone").value || "").replace(/\D/g, "");
+      const bk = (document.getElementById("recBkash").value || "").replace(/\D/g, "");
+      if (!/^01[3-9][0-9]{8}$/.test(phone) || !/^01[3-9][0-9]{8}$/.test(bk)) { out.textContent = "সঠিক মোবাইল ও বিকাশ নম্বর দিন।"; return; }
+      out.textContent = "খোঁজা হচ্ছে...";
+      const r = await withTimeout(supabaseClient.rpc("partner_recover_code", { p_phone: phone, p_bkash: bk }), 12000);
+      if (r.error) { out.textContent = "ইন্টারনেট ধীর বা সমস্যা হয়েছে। আবার চেষ্টা করুন।"; return; }
+      if (!r.data) { out.textContent = "এই তথ্যে কোনো পার্টনার পাওয়া যায়নি।"; return; }
+      out.innerHTML = 'আপনার পার্টনার কোড: <b>' + esc(r.data) + '</b> <button class="btn dark" type="button" data-copy="' + esc(r.data) + '" style="margin-top:6px">কোড কপি করুন</button>';
+    }
+
+    async function portalAddEmail() {
+      const msg = document.getElementById("emMsg");
+      const em = (document.getElementById("emNew").value || "").trim().toLowerCase();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { msg.textContent = "সঠিক ইমেইল লিখুন।"; return; }
+      msg.textContent = "সেভ হচ্ছে...";
+      const r = await withTimeout(supabaseClient.rpc("partner_add_email", { p_code: PORTAL.code, p_phone: PORTAL.phone, p_pass: PORTAL.pass, p_email: em }), 12000);
+      if (r.error && /email_exists/.test(r.error.message)) { msg.parentNode.style.display = "none"; return; }
+      if (r.error) { msg.textContent = /email_used/.test(r.error.message) ? "এই ইমেইল আগে ব্যবহৃত হয়েছে।" : "সেভ হয়নি: " + r.error.message; return; }
+      msg.textContent = "ইমেইল যোগ হয়েছে।";
+      await refreshPortal();
+    }
+
+    async function portalSave() {
+      const msg = document.getElementById("pfMsg");
+      const v = function (id) { const e = document.getElementById(id); return e ? (e.value || "").trim() : ""; };
+      const docs = ((PORTAL.data.profile || {}).docs) || [];
+      const checks = [["partner_type", v("pfType")], ["id_number", v("pfIdNum")], ["social_link", v("pfSocial")],
+        ["district", v("pfDistrict")], ["upazila", v("pfUpazila")], ["signature", v("pfSig")]];
+      for (const c of checks) {
+        if (isReq(c[0]) && !c[1]) { msg.textContent = "দয়া করে '" + lbl(c[0]) + "' দিন।"; return; }
+      }
+      for (const k of DOC_KINDS) {
+        const el = document.getElementById(DOC_INPUT[k]);
+        const hasFile = el && el.files && el.files[0];
+        if (isReq(k) && docs.indexOf(k) < 0 && !hasFile) { msg.textContent = "দয়া করে '" + lbl(k) + "' এর ছবি দিন।"; return; }
+      }
+      msg.textContent = "জমা হচ্ছে...";
+      const c = await supabaseClient.rpc("partner_complete_pw", {
+        p_code: PORTAL.code, p_phone: PORTAL.phone, p_pass: PORTAL.pass, p_id_type: v("pfIdType"), p_id_number: v("pfIdNum"),
+        p_social: v("pfSocial"), p_type: v("pfType"), p_district: v("pfDistrict"), p_upazila: v("pfUpazila"), p_signature: v("pfSig")
+      });
+      if (c.error || !c.data) { msg.textContent = "জমা হয়নি: " + (c.error ? c.error.message : "আবেদনটি আর বদলানো যাবে না।"); return; }
+      for (const k of DOC_KINDS) {
+        const el = document.getElementById(DOC_INPUT[k]);
+        const f = el && el.files ? el.files[0] : null;
+        if (!f || f.size > 5 * 1024 * 1024) continue;
+        const path = PORTAL.code + "/" + k + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8) + ".jpg";
+        const up = await supabaseClient.storage.from("partner-docs").upload(path, f, { contentType: f.type || "image/jpeg" });
+        if (!up.error) await supabaseClient.rpc("partner_attach_doc_v3", { p_code: PORTAL.code, p_phone: PORTAL.phone, p_pass: PORTAL.pass, p_kind: k, p_path: path });
+      }
+      await refreshPortal();
+    }
+
+    function withTimeout(p, ms) {
+      return Promise.race([p, new Promise(function (res) {
+        setTimeout(function () { res({ error: { message: "ইন্টারনেট ধীর। কয়েক সেকেন্ড পরে আবার চেষ্টা করুন।" } }); }, ms);
+      })]);
+    }
+
+    function copyText(t, el) {
+      const done = function () {
+        if (!el) return;
+        const o = el.textContent;
+        el.textContent = "কপি হয়েছে ✓";
+        setTimeout(function () { el.textContent = o; }, 1500);
+      };
+      const fallback = function () {
+        const ta = document.createElement("textarea");
+        ta.value = t;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); done(); } catch (e) {}
+        ta.remove();
+      };
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(t).then(done).catch(fallback);
+      } else {
+        fallback();
+      }
+    }
+
+    function shareLink(url) {
+      const text = "SAREXBD থেকে কিনুন: " + url;
+      if (navigator.share) {
+        navigator.share({ title: "SAREXBD", text: text, url: url }).catch(function () {});
+      } else {
+        copyText(url, null);
+      }
+    }
+
+    async function submitPartner() {
+      try { await submitPartnerInner(); }
+      catch (e) { const m = document.getElementById("pMsg"); if (m) m.textContent = "ত্রুটি: " + (e && e.message ? e.message : String(e)); }
+    }
+
+    async function submitPartnerInner() {
+      const msg = document.getElementById("pMsg");
+      const g = function (id) { return (document.getElementById(id).value || "").trim(); };
+      const name = g("pName");
+      const email = g("pEmail").toLowerCase();
+      const phone = g("pPhone").replace(/\D/g, "");
+      const wa = g("pWhats").replace(/\D/g, "");
+      const pass = g("pPass");
+      const pass2 = g("pPass2");
+      const bk = g("pBkash").replace(/\D/g, "");
+      if (!document.getElementById("pAgree").checked) { msg.textContent = "নিয়মাবলিতে সম্মতি দিন।"; return; }
+      if (name.length < 2) { msg.textContent = "নাম লিখুন।"; return; }
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg.textContent = "সঠিক ইমেইল লিখুন।"; return; }
+      if (!/^01[3-9][0-9]{8}$/.test(phone)) { msg.textContent = "সঠিক মোবাইল নম্বর দিন (১১ সংখ্যা, 013–019)।"; return; }
+      if (!/^01[3-9][0-9]{8}$/.test(wa)) { msg.textContent = "সঠিক WhatsApp নম্বর দিন (১১ সংখ্যা, 013–019)।"; return; }
+      if (pass.length < 6) { msg.textContent = "পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে।"; return; }
+      if (pass !== pass2) { msg.textContent = "দুটি পাসওয়ার্ড মেলেনি।"; return; }
+      if (!/^01[3-9][0-9]{8}$/.test(bk)) { msg.textContent = "সঠিক বিকাশ নম্বর দিন।"; return; }
+      msg.textContent = "জমা হচ্ছে...";
+      const r = await withTimeout(supabaseClient.rpc("partner_register", {
+        p_name: name, p_phone: phone, p_bkash: bk, p_email: email, p_whatsapp: wa, p_pass: pass
+      }), 15000);
+      if (r.error || !r.data) {
+        const t = r.error ? r.error.message : "";
+        if (/already_applied/.test(t)) msg.textContent = "এই মোবাইল নম্বরে ইতিমধ্যে আবেদন আছে। ড্রপশিপিং প্রবেশ থেকে তথ্য দিন।";
+        else if (/email_used/.test(t)) msg.textContent = "এই ইমেইলে ইতিমধ্যে অ্যাকাউন্ট আছে।";
+        else msg.textContent = "জমা হয়নি: " + (t || "আবার চেষ্টা করুন।");
+        return;
+      }
+      msg.innerHTML = "আবেদন জমা হয়েছে! আপনার পার্টনার কোড: <b>" + esc(r.data) + "</b><br>আমরা WhatsApp বা ফোনে যোগাযোগ করব। যাচাইয়ের পর অনুমোদন পাবেন। এখন ইমেইল বা মোবাইল ও পাসওয়ার্ড দিয়ে প্রবেশ করে বাকি তথ্য দিন।";
+      msg.insertAdjacentHTML("beforeend", '<br><button class="btn" type="button" data-copy="' + esc(r.data) + '" style="margin-top:8px">কোড কপি করুন</button>');
+    }
+  </script>
+<script>
+function showPage(name){
+  document.querySelectorAll(".page").forEach(function(p){ p.hidden = p.id !== "page-" + name; });
+  document.querySelectorAll(".dtab").forEach(function(b){ b.classList.toggle("on", b.dataset.page === name); });
+  window.scrollTo(0,0);
+}
+document.addEventListener("click", function (e) {
+  const t = e.target;
+  const pg = t.closest("[data-page]");
+  if (pg) { showPage(pg.dataset.page); return; }
+  if (t.closest("#pBtn")) { submitPartner(); return; }
+  if (t.closest("#pLoginBtn")) { portalLogin(); return; }
+  if (t.closest("#pForgot")) { portalForgot(); return; }
+  if (t.closest("#rCheck")) { portalResetCheck(); return; }
+  if (t.closest("#rSave")) { portalResetSet(); return; }
+  if (t.closest("#recOpen")) { openRecover(); return; }
+  if (t.closest("#recBtn")) { recoverCode(); return; }
+  if (t.closest("#pfSave")) { portalSave(); return; }
+  if (t.closest("#pwSave")) { portalSetPw(); return; }
+  if (t.closest("#emSave")) { portalAddEmail(); return; }
+  if (t.closest("#payReq")) { requestPayout(); return; }
+  const pc = t.closest("[data-pconfirm]"); if (pc) { partnerConfirm(pc.dataset.pconfirm); return; }
+  const pr = t.closest("[data-preject]"); if (pr) { partnerReject(pr.dataset.preject); return; }
+  const cp = t.closest("[data-copy]"); if (cp) { copyText(cp.dataset.copy, cp); return; }
+  const sh = t.closest("[data-share]"); if (sh) { shareLink(sh.dataset.share); return; }
+  const ds = t.closest("[data-dscroll]");
+  if (ds) { const tg = document.getElementById(ds.dataset.dscroll); if (tg) tg.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+  if (t.closest("[data-dlogout]")) { PORTAL = null; document.getElementById("pPortal").textContent = "লগআউট হয়েছে। আবার প্রবেশ করুন।"; return; }
+});
+</script>
+</body>
+</html>
